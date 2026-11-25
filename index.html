@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f5f5f2">
+    <meta name="theme-color" content="#000000">
     <meta name="description" content="Un recorrido por la memoria del 2 de octubre de 1968 en Tlatelolco.">
-    <title>2 de octubre — Memoria colectiva</title>
+    <title>2 de octubre — No se olvida</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="vendor/lenis.min.js" defer></script>
     <script src="js/photo-gate.js" defer></script>
@@ -16,21 +16,28 @@
     <a class="skip-link" href="#inicio">Saltar al contenido</a>
 
     <dialog class="preloader" id="preloader" aria-labelledby="gate-title" aria-describedby="gate-description" data-lenis-prevent>
-      <div class="gate-layout">
-        <div class="gate-intro">
-          <p class="eyebrow">Tlatelolco · 1968</p>
-          <p class="date-mark" aria-label="2 de octubre">2<span>octubre</span></p>
-          <p class="gate-caption">La memoria también<br>se construye contigo.</p>
-        </div>
-        <form class="gate-form" id="photo-form">
+      <video class="gate-video" id="hero-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1">
+        <source src="footage/fondoinicio.webm" type="video/webm">
+      </video>
+      <button class="sound-toggle" id="sound-toggle" type="button" aria-label="Desactivar sonido" aria-pressed="true">
+        <svg class="sound-icon sound-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
+          <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+          <path d="M18.5 5.5a9 9 0 0 1 0 13"></path>
+        </svg>
+        <svg class="sound-icon sound-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
+          <path d="m16 9 5 6m0-6-5 6"></path>
+        </svg>
+      </button>
+      <div class="intro-scene" id="intro-scene">
+        <p id="intro-message" role="status" aria-live="polite">Se recomienda el uso de volumen para una mejor experiencia</p>
+      </div>
+      <form class="gate-layout" id="photo-form">
+        <div class="gate-form">
           <p class="eyebrow">Antes de comenzar</p>
-          <h2 id="gate-title">Dale un rostro<br>a la memoria.</h2>
-          <p id="gate-description">Elige una foto de perfil o toma una con tu cámara para entrar al recorrido.</p>
-          <div class="portrait-frame">
-            <span class="portrait-placeholder" id="portrait-placeholder" aria-hidden="true">+</span>
-            <img class="portrait" id="photo-preview" alt="Vista previa de tu foto" hidden>
-            <video class="portrait camera-preview" id="camera-preview" autoplay playsinline muted aria-label="Vista previa de la cámara" hidden></video>
-          </div>
+          <h2 id="gate-title">Dale un rostro<br>a la memoria.</strong></h2>
+          <p id="gate-description">Completa tu credencial con una foto, tu nombre y fecha de nacimiento, o continúa sin compartir tus datos.</p>
           <div class="button-row">
             <label class="button button-secondary file-button" for="photo-input">Elegir foto
               <input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="photo-help photo-status">
@@ -42,9 +49,26 @@
           <p class="caption" id="photo-help">JPG, PNG o WebP · Hasta 10 MB.<br>Tu foto permanece en este navegador y se elimina al salir.</p>
           <p class="status" id="photo-status" role="status" aria-live="polite" aria-atomic="true"></p>
           <button class="button button-primary" id="enter-button" type="submit" disabled>Comenzar recorrido</button>
+          <button class="button button-secondary skip-profile-button" id="skip-profile-button" type="button">Continuar sin foto ni datos</button>
           <button class="button button-secondary" id="cancel-button" type="button" hidden>Volver al recorrido</button>
-        </form>
-      </div>
+        </div>
+        <div class="gate-intro">
+          <div class="credential-card">
+            <img class="credential-template" src="img/credencial.png" alt="Plantilla de credencial de estudiante">
+            <div class="portrait-frame credential-photo">
+              <span class="portrait-placeholder" id="portrait-placeholder" aria-hidden="true">+</span>
+              <img class="portrait" id="photo-preview" alt="Vista previa de tu foto en la credencial" hidden>
+              <video class="portrait camera-preview" id="camera-preview" autoplay playsinline muted aria-label="Vista previa de la cámara en la credencial" hidden></video>
+            </div>
+            <div class="credential-name-box">
+              <textarea class="credential-name" id="credential-name" name="fullName" rows="2" maxlength="150" required autocomplete="name" aria-label="Nombre, máximo 150 caracteres" placeholder="Tu nombre"></textarea>
+            </div>
+            <div class="credential-birth-box">
+              <input class="credential-birth" id="credential-birth" name="birthDate" type="date" required autocomplete="bday" aria-label="Fecha de nacimiento">
+            </div>
+          </div>
+        </div>
+      </form>
     </dialog>
 
     <div id="site">
@@ -54,9 +78,9 @@
           <ul class="navigation">
             <li><a href="#inicio" aria-current="location">Inicio</a></li>
             <li><a href="#contexto">Contexto</a></li>
-            <li><a href="#voces">Voces</a></li>
-            <li><a href="#memoria">Memoria</a></li>
-            <li><a href="#presente">Presente</a></li>
+            <li><a href="#voces">blabla</a></li>
+            <li><a href="#memoria">blabla</a></li>
+            <li><a href="#presente">final</a></li>
           </ul>
         </nav>
         <button class="profile-button" id="edit-photo" type="button" aria-label="Cambiar foto de perfil" hidden>
@@ -67,47 +91,46 @@
       <main id="main-content">
         <noscript><p class="no-script">Activa JavaScript para agregar tu foto y ver los movimientos del recorrido. El contenido está disponible a continuación.</p></noscript>
         <section class="section section-hero" id="inicio" aria-labelledby="inicio-title" tabindex="-1">
-          <p class="eyebrow">México · Plaza de las Tres Culturas</p>
+          <p class="eyebrow">Tlatelolco · 1968</p>
           <div data-scroll-track>
             <h1 class="display-title" id="inicio-title" data-motion="parallax">2 de octubre.<br><span class="accent">No se olvida.</span></h1>
           </div>
           <div class="section-bottom">
-            <p class="intro">Un recorrido por la historia.<br>Un espacio para la memoria colectiva.</p>
-            <a class="text-link" href="#contexto">Conocer el contexto</a>
+            <p class="intro">Hoy es 2 de octubre de 1968, <strong>eres un estudiante.</strong><br>Tus compañeros y amigos te han convocado a una manifestación.<br>Estás aquí porque como todos los demás, <strong>quieres exigir por tus derechos.</strong></p>
           </div>
         </section>
 
-        <section class="section" id="contexto" aria-labelledby="contexto-title">
-          <p class="eyebrow">El contexto</p>
+        <section class="section section-context" id="contexto" aria-labelledby="contexto-title">
+          <p class="eyebrow">¿Qué está pasando?</p>
           <div class="section-grid">
             <div data-scroll-track>
-              <h2 id="contexto-title" data-motion="reveal">Una plaza.<br>Miles de voces.</h2>
+              <h2 id="contexto-title" data-motion="reveal"><strong>Una plaza.<br>Miles de voces.</strong></h2>
             </div>
             <div class="prose" data-scroll-track>
               <div data-motion="parallax">
                 <p>El 2 de octubre de 1968, miles de estudiantes y ciudadanos se reunieron en la Plaza de las Tres Culturas, en Tlatelolco.</p>
                 <p>Estudiantes, docentes y trabajadores exigían mayores libertades civiles y políticas, diálogo público y el cumplimiento de su pliego petitorio.</p>
-                <p>Fueron reprimidos por fuerzas del Estado.</p>
+                <p>Sin embargo, lo que estaba a punto de pasar iba a ser una masacre.</p>
               </div>
             </div>
           </div>
         </section>
 
         <section class="section section-dark" id="voces" aria-labelledby="voces-title">
-          <p class="eyebrow">Las voces</p>
+          <p class="eyebrow">Aqui poner la parte de la vengala</p>
           <div data-scroll-track>
-            <h2 id="voces-title" data-motion="reveal">Escuchar también<br>es recordar.</h2>
+            <h2 id="voces-title" data-motion="reveal">Represión</h2>
           </div>
           <ul class="voices" aria-label="Las demandas del movimiento">
-            <li data-scroll-track><span data-motion="parallax">Libertad.</span></li>
-            <li data-scroll-track><span data-motion="reverse">Diálogo.</span></li>
-            <li data-scroll-track><span data-motion="parallax">Justicia.</span></li>
+            <li data-scroll-track><span data-motion="parallax">WIP.</span></li>
+            <li data-scroll-track><span data-motion="reverse">WIP.</span></li>
+            <li data-scroll-track><span data-motion="parallax">WIP.</span></li>
           </ul>
-          <p class="caption">Palabras que invitan a seguir preguntando.</p>
+          <p class="caption">Por terminar</p>
         </section>
 
         <section class="section" id="memoria" aria-labelledby="memoria-title">
-          <p class="eyebrow">La memoria</p>
+          <p class="eyebrow">Aqui poner la parte de la matanza</p>
           <div class="section-grid">
             <div data-scroll-track><h2 id="memoria-title" data-motion="reveal">Recordar es<br>un acto colectivo.</h2></div>
             <div class="prose" data-scroll-track>
@@ -121,7 +144,7 @@
         </section>
 
         <section class="section section-final" id="presente" aria-labelledby="presente-title">
-          <p class="eyebrow">Desde el presente</p>
+          <p class="eyebrow">Aqui poner el se busca con el nombre y la foto</p>
           <div class="closing-portrait" data-scroll-track><img id="closing-photo" alt="Tu rostro en este recorrido de memoria" width="112" height="112" data-motion="parallax" hidden></div>
           <div data-scroll-track><h2 id="presente-title" data-motion="reveal">La memoria<br>continúa contigo.</h2></div>
           <p class="intro">¿Qué significa para ti no olvidar?</p>
@@ -130,8 +153,8 @@
       </main>
 
       <footer class="site-footer">
-        <p>2 de octubre · Memoria colectiva</p>
-        <p>Un espacio para recordar.</p>
+        <p>2 de octubre · Tlatelolco 1968</p>
+        <p>Ni perdón ni olvido.</p>
       </footer>
       <progress class="scroll-progress" id="scroll-progress" max="1" value="0" aria-label="Progreso del recorrido"></progress>
     </div>

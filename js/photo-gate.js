@@ -6,6 +6,8 @@
     this.dialog = dialog;
     this.form = document.getElementById('photo-form');
     this.input = document.getElementById('photo-input');
+    this.nameInput = document.getElementById('credential-name');
+    this.birthInput = document.getElementById('credential-birth');
     this.preview = document.getElementById('photo-preview');
     this.placeholder = document.getElementById('portrait-placeholder');
     this.video = document.getElementById('camera-preview');
@@ -13,8 +15,10 @@
     this.captureButton = document.getElementById('capture-button');
     this.stopButton = document.getElementById('stop-camera-button');
     this.enterButton = document.getElementById('enter-button');
+    this.skipButton = document.getElementById('skip-profile-button');
     this.cancelButton = document.getElementById('cancel-button');
     this.status = document.getElementById('photo-status');
+    this.fallbackPhoto = 'img/sinfoto.png';
     this.currentPhoto = null;
     this.pendingPhoto = null;
     this.stream = null;
@@ -29,6 +33,33 @@
     this.status.classList.toggle('is-error', Boolean(error));
   };
 
+  PhotoGate.prototype.updateEnterButton = function () {
+    this.enterButton.disabled = this.busy || !(this.currentPhoto || this.pendingPhoto) || !this.form.checkValidity();
+  };
+
+  PhotoGate.prototype.fitName = function () {
+    var value = this.nameInput.value.replace(/[\r\n]+/g, ' ');
+    var fontSize;
+    var contentHeight;
+    var verticalPadding;
+    this.nameInput.value = value;
+    this.nameInput.style.fontSize = '';
+    this.nameInput.style.height = '';
+    this.nameInput.style.paddingTop = '0';
+    this.nameInput.style.paddingBottom = '0';
+    fontSize = parseFloat(window.getComputedStyle(this.nameInput).fontSize);
+    while (this.nameInput.scrollHeight > this.nameInput.clientHeight + 1 && fontSize > 1) {
+      fontSize = Math.max(1, fontSize - 0.5);
+      this.nameInput.style.fontSize = fontSize + 'px';
+    }
+    this.nameInput.style.height = '0px';
+    contentHeight = this.nameInput.scrollHeight;
+    this.nameInput.style.height = '';
+    verticalPadding = Math.max(0, (this.nameInput.clientHeight - contentHeight) / 2);
+    this.nameInput.style.paddingTop = verticalPadding + 'px';
+    this.nameInput.style.paddingBottom = verticalPadding + 'px';
+  };
+
   PhotoGate.prototype.bind = function () {
     var self = this;
     this.input.addEventListener('change', function () {
@@ -36,6 +67,13 @@
       if (file) { self.loadFile(file); }
       self.input.value = '';
     });
+    this.nameInput.addEventListener('input', function () {
+      self.fitName();
+      self.updateEnterButton();
+    });
+    this.birthInput.addEventListener('input', function () { self.updateEnterButton(); });
+    this.birthInput.addEventListener('change', function () { self.updateEnterButton(); });
+    window.addEventListener('resize', function () { self.fitName(); });
     this.cameraButton.addEventListener('click', function () { self.startCamera(); });
     this.captureButton.addEventListener('click', function () { self.capture(); });
     this.stopButton.addEventListener('click', function () {
@@ -43,6 +81,7 @@
       self.message('Cámara cerrada. Puedes elegir una foto o volver a abrirla.');
     });
     this.cancelButton.addEventListener('click', function () { self.dialog.close(); });
+    this.skipButton.addEventListener('click', function () { self.continueWithoutProfile(); });
     this.form.addEventListener('submit', function (event) {
       event.preventDefault();
       self.enter();
@@ -69,10 +108,11 @@
     this.showPreview();
     this.cancelButton.hidden = !this.entered;
     this.enterButton.textContent = this.entered ? 'Guardar foto y volver' : 'Comenzar recorrido';
-    this.enterButton.disabled = !this.currentPhoto;
+    this.updateEnterButton();
     this.message('');
     document.body.classList.add('is-gated');
     this.dialog.showModal();
+    this.fitName();
     document.dispatchEvent(new CustomEvent('gate:open'));
   };
 
@@ -105,7 +145,7 @@
     }
     ticket = ++this.request;
     this.busy = true;
-    this.enterButton.disabled = true;
+    this.updateEnterButton();
     this.message('Preparando tu foto…');
     source = URL.createObjectURL(file);
     image = new Image();
@@ -119,7 +159,7 @@
       URL.revokeObjectURL(source);
       if (ticket !== self.request || !self.dialog.open) { return; }
       self.busy = false;
-      self.enterButton.disabled = !(self.currentPhoto || self.pendingPhoto);
+      self.updateEnterButton();
       self.message('No pudimos leer esta imagen. Prueba con otra foto.', true);
     };
     image.src = source;
@@ -132,7 +172,7 @@
     var size = Math.min(width, height);
     if (!size || !context) {
       this.busy = false;
-      this.enterButton.disabled = !(this.currentPhoto || this.pendingPhoto);
+      this.updateEnterButton();
       this.message('No se pudo preparar la imagen. Elige otra foto.', true);
       return;
     }
@@ -144,15 +184,17 @@
       if (ticket !== self.request || !self.dialog.open) { return; }
       self.busy = false;
       if (!blob) {
-        self.enterButton.disabled = !(self.currentPhoto || self.pendingPhoto);
+        self.updateEnterButton();
         self.message('No se pudo preparar la imagen. Prueba con otra.', true);
         return;
       }
       self.discardPending();
       self.pendingPhoto = URL.createObjectURL(blob);
       self.showPreview();
-      self.enterButton.disabled = false;
-      self.message('Tu foto está lista. Ya puedes continuar.');
+      self.updateEnterButton();
+      self.message(self.form.checkValidity()
+        ? 'Tu foto está lista. Ya puedes continuar.'
+        : 'Foto lista. Completa tu nombre y fecha de nacimiento para continuar.');
     }, 'image/jpeg', 0.85);
   };
 
@@ -166,7 +208,7 @@
     }
     ticket = ++this.request;
     this.busy = true;
-    this.enterButton.disabled = true;
+    this.updateEnterButton();
     this.cameraButton.disabled = true;
     this.stopButton.hidden = false;
     this.message('Esperando acceso a la cámara…');
@@ -203,7 +245,7 @@
     this.cameraButton.hidden = false;
     this.cameraButton.disabled = false;
     this.busy = false;
-    this.enterButton.disabled = !(this.currentPhoto || this.pendingPhoto);
+    this.updateEnterButton();
     this.showPreview();
   };
 
@@ -219,25 +261,43 @@
     /* Release hardware now; keep the image conversion ticket valid. */
     this.stopCamera(true);
     this.busy = true;
-    this.enterButton.disabled = true;
+    this.updateEnterButton();
     this.message('Preparando tu foto…');
+  };
+
+  PhotoGate.prototype.continueWithoutProfile = function () {
+    var previous = this.currentPhoto;
+    this.stopCamera();
+    this.discardPending();
+    if (previous && previous !== this.fallbackPhoto) { URL.revokeObjectURL(previous); }
+    this.currentPhoto = this.fallbackPhoto;
+    this.nameInput.value = '';
+    this.birthInput.value = '';
+    this.fitName();
+    this.entered = true;
+    this.showPreview();
+    this.updateEnterButton();
+    document.dispatchEvent(new CustomEvent('profile:ready', {
+      detail: { url: this.currentPhoto, anonymous: true }
+    }));
+    this.dialog.close();
   };
 
   PhotoGate.prototype.enter = function () {
     var previous = this.currentPhoto;
-    if (this.busy || !(this.pendingPhoto || this.currentPhoto)) { return; }
+    if (this.busy || !(this.pendingPhoto || this.currentPhoto) || !this.form.checkValidity()) { return; }
     this.currentPhoto = this.pendingPhoto || this.currentPhoto;
     this.pendingPhoto = null;
     this.entered = true;
     document.dispatchEvent(new CustomEvent('profile:ready', { detail: { url: this.currentPhoto } }));
-    if (previous && previous !== this.currentPhoto) { URL.revokeObjectURL(previous); }
+    if (previous && previous !== this.currentPhoto && previous !== this.fallbackPhoto) { URL.revokeObjectURL(previous); }
     this.dialog.close();
   };
 
   PhotoGate.prototype.destroy = function () {
     this.stopCamera();
     this.discardPending();
-    if (this.currentPhoto) { URL.revokeObjectURL(this.currentPhoto); }
+    if (this.currentPhoto && this.currentPhoto !== this.fallbackPhoto) { URL.revokeObjectURL(this.currentPhoto); }
     this.currentPhoto = null;
   };
 
